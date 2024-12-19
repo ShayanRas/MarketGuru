@@ -1,0 +1,10 @@
+langgraph
+langchain-openai
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+langchain
+langsmith
+langchain-anthropic
+langchain-experimental

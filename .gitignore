@@ -1,0 +1,9 @@
+# Python virtual environment
+.venv/
+
+# Environment variables
+.env
+
+# Docker-related files
+*.log
+__pycache__/
