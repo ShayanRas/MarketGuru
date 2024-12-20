@@ -14,6 +14,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy the requirements file into the container
 COPY requirements.txt .
 
+# Upgrade pip to avoid compatibility issues
+RUN pip install --no-cache-dir --upgrade pip
+
 # Install Python dependencies from requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -26,5 +29,5 @@ ENV PYTHONPATH=/app/src
 # Expose the port FastAPI will run on
 EXPOSE 8000
 
-# Run the FastAPI application with Uvicorn (production-ready with Gunicorn)
+# Run the FastAPI application with Gunicorn and Uvicorn worker
 CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "src.main:app"]
