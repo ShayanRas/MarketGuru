@@ -6,7 +6,7 @@ services:
     container_name: fastapi
     environment:
       # Use Render's DATABASE_URL or an external one
-      DATABASE_URL: postgresql://marketguru_data_user:2PRePLr1mLxqJtehIHHfUZCmWCzh0Zv6@dpg-ctif4vbtq21c73dnuc60-a/marketguru_data
+      DATABASE_URL: postgresql://marketguru_data_user:2PRePLr1mLxqJtehIHHfUZCmWCzh0Zv6@dpg-ctif4vbtq21c73dnuc60-a.oregon-postgres.render.com/marketguru_data
     ports:
       - "8000:8000"
     env_file:
