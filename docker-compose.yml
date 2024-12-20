@@ -1,38 +1,16 @@
 version: "3.9"
 services:
-  postgres:
-    image: postgres:14
-    container_name: postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: shayan
-      POSTGRES_DB: fundamental_data
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data  # Persist PostgreSQL data
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   fastapi:
     build:
       context: .
     container_name: fastapi
     environment:
-      DATABASE_URL: postgresql+psycopg2://postgres:shayan@postgres:5432/fundamental_data
+      # Use Render's DATABASE_URL or an external one
+      DATABASE_URL: postgresql://marketguru_data_user:2PRePLr1mLxqJtehIHHfUZCmWCzh0Zv6@dpg-ctif4vbtq21c73dnuc60-a/marketguru_data
     ports:
       - "8000:8000"
-    depends_on:
-      postgres:
-        condition: service_healthy  # Wait for Postgres to be ready
     env_file:
-      - .env  # Load environment variables from .env
+      - .env  # Load environment variables from your .env file
     volumes:
-      - ./src:/app/src  # Mount the source code for live updates during development
+      - ./src:/app/src  # Mount source code for live updates during development
     command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
-
-volumes:
-  postgres_data:
