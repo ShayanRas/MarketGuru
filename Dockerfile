@@ -29,5 +29,5 @@ ENV PYTHONPATH=/app/src
 # Expose the port FastAPI will run on
 EXPOSE 8000
 
-# Run the FastAPI application with Gunicorn and Uvicorn worker
-CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "src.main:app"]
+# Run the FastAPI application with Uvicorn
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
