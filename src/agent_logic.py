@@ -839,6 +839,29 @@ repl_tool = Tool(
     func=python_repl.run,
 )
 
+@tool
+def update_trading_chart(
+    symbol: str,
+    interval: str = "D",
+    studies: list = None
+) -> dict:
+    """Update the trading chart display.
+    
+    Args:
+        symbol: Trading symbol (e.g., 'NASDAQ:AAPL')
+        interval: Time interval (e.g., 'D' for daily)
+        studies: List of technical indicators
+    """
+    url = 'https://duxokbotzqdtmdbhgcns.functions.supabase.co/update-chart'
+    payload = {
+        'symbol': symbol,
+        'interval': interval,
+        'studies': studies or []
+    }
+    return requests.post(url, json=payload).json()
+
+
+
 tools = [
     list_database_tables,
     get_table_details,
@@ -855,6 +878,7 @@ tools = [
     get_sliding_window_analytics,
     get_stock_quote,
     repl_tool,
+    update_trading_chart
 ]
 
 graph = create_react_agent(model, tools=tools, state_modifier=prompt)
