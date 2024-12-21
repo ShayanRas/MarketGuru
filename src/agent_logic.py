@@ -22,6 +22,9 @@ load_dotenv()
 from contextlib import contextmanager
 from sqlalchemy.pool import QueuePool
 from langgraph.checkpoint.postgres import PostgresSaver
+from psycopg2 import connect
+from sqlalchemy.engine.base import Engine
+import psycopg2
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 class SQLAlchemyConnectionPool:
@@ -44,12 +47,22 @@ engine = create_engine(
     pool_pre_ping=True
 )
 
-pool = SQLAlchemyConnectionPool(engine)
-checkpointer = PostgresSaver(pool)
 
-with engine.connect() as connection:
+def get_psycopg2_connection():
+    return psycopg2.connect(
+        dbname="marketguru_data",
+        user="marketguru_data_user",
+        password="2PRePLr1mLxqJtehIHHfUZCmWCzh0Zv6",
+        host="dpg-ctif4vbtq21c73dnuc60-a.oregon-postgres.render.com",
+        port=5432
+    )
+
+with get_psycopg2_connection() as conn:
+    checkpointer = PostgresSaver(conn)
     checkpointer.setup()
-    connection.commit()
+    conn.commit()
+
+
 
 metadata = MetaData()
 metadata.reflect(bind=engine)
@@ -951,6 +964,7 @@ graph = create_react_agent(
     checkpointer=checkpointer,
     debug=True
 )
+
 def run_agent_with_persistence(input_data: dict, thread_id: str) -> Iterator:
     """Run agent with persistence and streaming enabled"""
     config = {
