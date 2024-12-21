@@ -6,7 +6,7 @@ from sqlalchemy.engine.reflection import Inspector
 from langchain_anthropic import ChatAnthropic
 from langchain_openai import ChatOpenAI
 from sqlalchemy.orm import sessionmaker
-from typing import Optional, Iterator, Any
+from typing import Optional
 from pydantic import BaseModel
 from enum import Enum
 from langchain_core.tools import Tool
@@ -17,53 +17,13 @@ from urllib.parse import urlencode
 from sqlalchemy import Column, String, BigInteger, Date
 from sqlalchemy.orm import declarative_base
 from langchain_experimental.utilities import PythonREPL
+DATABASE_URL = os.getenv("DATABASE_URL")
 from dotenv import load_dotenv
 load_dotenv()
-from contextlib import contextmanager
-from sqlalchemy.pool import QueuePool
-from langgraph.checkpoint.postgres import PostgresSaver
-from psycopg2 import connect
-from sqlalchemy.engine.base import Engine
-import psycopg2
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-class SQLAlchemyConnectionPool:
-    def __init__(self, engine):
-        self.engine = engine
-        
-    @contextmanager
-    def connection(self) -> Iterator[Any]:
-        """Get a connection from the pool."""
-        with self.engine.connect() as conn:
-            yield conn
 
 # Create the engine and connect
-engine = create_engine(
-    DATABASE_URL,
-    poolclass=QueuePool,
-    pool_size=20,
-    max_overflow=0,
-    pool_timeout=30,
-    pool_pre_ping=True
-)
-
-
-def get_psycopg2_connection():
-    return psycopg2.connect(
-        dbname="marketguru_data",
-        user="marketguru_data_user",
-        password="2PRePLr1mLxqJtehIHHfUZCmWCzh0Zv6",
-        host="dpg-ctif4vbtq21c73dnuc60-a.oregon-postgres.render.com",
-        port=5432
-    )
-
-with get_psycopg2_connection() as conn:
-    checkpointer = PostgresSaver(conn)
-    checkpointer.setup()
-    conn.commit()
-
-
-
+engine = create_engine(DATABASE_URL)
 metadata = MetaData()
 metadata.reflect(bind=engine)
 
@@ -904,7 +864,7 @@ def update_trading_chart(
 @tool
 def get_stock_overview(symbol: str) -> dict:
     """
-    get overview of quarterly stock fundamentals including CIK,Exchange,Currency,Country,Sector,Industry,Address,OfficialSite,FiscalYearEnd,LatestQuarter,MarketCapitalization,EBITDA,PERatio,PEGRatio,BookValue,DividendPerShare,DividendYield,EPS,RevenuePerShareTTM,ProfitMargin,OperatingMarginTTM,ReturnOnAssetsTTM,ReturnOnEquityTTM,RevenueTTM,GrossProfitTTM,DilutedEPSTTM,QuarterlyEarningsGrowthYOY,QuarterlyRevenueGrowthYOY,AnalystTargetPrice,AnalystRatingStrongBuy,AnalystRatingBuy,AnalystRatingHold,AnalystRatingSell,AnalystRatingStrongSell,TrailingPE,ForwardPE,PriceToSalesRatioTTM,PriceToBookRatio,EVToRevenue,EVToEBITDA,Beta,52WeekHigh,52WeekLow,50DayMovingAverage,200DayMovingAverage,SharesOutstanding,DividendDate,ExDividendDate
+    get overview of stock fundamental including CIK,Exchange,Currency,Country,Sector,Industry,Address,OfficialSite,FiscalYearEnd,LatestQuarter,MarketCapitalization,EBITDA,PERatio,PEGRatio,BookValue,DividendPerShare,DividendYield,EPS,RevenuePerShareTTM,ProfitMargin,OperatingMarginTTM,ReturnOnAssetsTTM,ReturnOnEquityTTM,RevenueTTM,GrossProfitTTM,DilutedEPSTTM,QuarterlyEarningsGrowthYOY,QuarterlyRevenueGrowthYOY,AnalystTargetPrice,AnalystRatingStrongBuy,AnalystRatingBuy,AnalystRatingHold,AnalystRatingSell,AnalystRatingStrongSell,TrailingPE,ForwardPE,PriceToSalesRatioTTM,PriceToBookRatio,EVToRevenue,EVToEBITDA,Beta,52WeekHigh,52WeekLow,50DayMovingAverage,200DayMovingAverage,SharesOutstanding,DividendDate,ExDividendDate
 
     Args:
         symbol: The stock ticker symbol to query (e.g., 'AAPL').
@@ -922,6 +882,7 @@ def get_stock_overview(symbol: str) -> dict:
     params = {
         "function": "OVERVIEW",
         "symbol": symbol,
+        "apikey": api_key
     }
 
     try:
@@ -929,8 +890,12 @@ def get_stock_overview(symbol: str) -> dict:
         response = requests.get(url, params=params)
         response.raise_for_status()
         
+        # Parse the JSON response
+        data = response.json()
+        return data
+
     except requests.exceptions.RequestException as e:
-        return {"error": f"Failed to fetch stock quote: {str(e)}"}
+        return {"error": f"Failed to fetch stock overview: {str(e)}"}
 
 tools = [
     list_database_tables,
@@ -952,68 +917,17 @@ tools = [
     get_stock_overview
 ]
 
-graph = create_react_agent(
-    llm=model,
-    tools=tools,
-    state_modifier=prompt,
-    checkpointer=checkpointer,
-    debug=True
-)
+graph = create_react_agent(model, tools=tools, state_modifier=prompt)
 
-def run_agent_with_persistence(input_data: dict, thread_id: str) -> Iterator:
-    """Run agent with persistence and streaming enabled"""
-    config = {
-        "configurable": {
-            "thread_id": thread_id,
-            "checkpoint_ns": ""
-        }
-    }
-    
-    # Get existing checkpoint if available
-    existing_checkpoint = checkpointer.get(config)
-    if existing_checkpoint:
-        config["configurable"]["checkpoint_id"] = existing_checkpoint.id
-        
-    return graph.stream(
-        input_data,
-        config=config,
-        stream_mode="values"
-    )
-
-def print_stream(stream: Iterator) -> None:
-    """Process and print streaming output with proper formatting"""
-    try:
-        for s in stream:
-            if "messages" in s:
-                message = s["messages"][-1]
-                
-                # Handle tuple messages (human inputs)
-                if isinstance(message, tuple):
-                    print(f"Human: {message[1]}")
-                    continue
-                    
-                # Handle AI messages with tool calls
-                if hasattr(message, "tool_calls") and message.tool_calls:
-                    print("\nAI Tool Calls:")
-                    for tool_call in message.tool_calls:
-                        print(f"- {tool_call.name}: {tool_call.args}")
-                    continue
-                
-                # Handle tool messages
-                if hasattr(message, "tool_name"):
-                    print(f"\nTool Response ({message.tool_name}):")
-                    print(message.content)
-                    continue
-                
-                # Handle regular AI messages
-                if hasattr(message, "content"):
-                    print(f"\nAI: {message.content}")
-                    continue
-                
-                # Fallback for other message types
-                print(f"\nMessage: {message}")
+def print_stream(stream):
+    for s in stream:
+        if "messages" in s:
+            # Access the last message in the list of messages
+            message = s["messages"][-1]
+            if isinstance(message, dict) and "content" in message:
+                # Print the content of the message
+                print(message["content"])
             else:
-                print(f"Other output: {s}")
-                
-    except Exception as e:
-        print(f"Error processing stream: {str(e)}")
+                print(message)
+        else:
+            print("Stream output does not contain 'messages':", s)
