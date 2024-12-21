@@ -4,6 +4,7 @@ from langgraph.prebuilt import create_react_agent, ToolNode
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.engine.reflection import Inspector
 from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
 from sqlalchemy.orm import sessionmaker
 from typing import Optional
 from pydantic import BaseModel
@@ -33,8 +34,8 @@ inspector = inspect(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
 
-model = ChatAnthropic(model="claude-3-5-sonnet-20241022", temperature=0.1)
-
+#model = ChatAnthropic(model="claude-3-5-sonnet-20241022", temperature=0.1)
+model = ChatOpenAI(model="gpt-4o", temperature=0.1)
 
 prompt = "you are a SQL question and answer agent with a set of tools to interact with the database. Use your tools to respond to user queries"
 
