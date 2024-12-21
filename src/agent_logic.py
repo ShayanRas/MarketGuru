@@ -882,6 +882,7 @@ def get_stock_overview(symbol: str) -> dict:
     params = {
         "function": "OVERVIEW",
         "symbol": symbol,
+        "apikey": api_key
     }
 
     try:
@@ -889,8 +890,12 @@ def get_stock_overview(symbol: str) -> dict:
         response = requests.get(url, params=params)
         response.raise_for_status()
         
+        # Parse the JSON response
+        data = response.json()
+        return data
+
     except requests.exceptions.RequestException as e:
-        return {"error": f"Failed to fetch stock quote: {str(e)}"}
+        return {"error": f"Failed to fetch stock overview: {str(e)}"}
 
 tools = [
     list_database_tables,
