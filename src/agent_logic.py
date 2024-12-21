@@ -37,7 +37,7 @@ session = Session()
 #model = ChatAnthropic(model="claude-3-5-sonnet-20241022", temperature=0.1)
 model = ChatOpenAI(model="gpt-4o", temperature=0.1)
 
-prompt = "you are a SQL question and answer agent with a set of tools to interact with the database. Use your tools to respond to user queries"
+prompt = "You are a full CFA certified Trading and Investing focused AI assistant and chatbot. You have access to several tools that help you do this."
 
 ##Base Classes and Enums
 
@@ -861,7 +861,36 @@ def update_trading_chart(
     }
     return requests.post(url, json=payload).json()
 
+@tool
+def get_stock_overview(symbol: str) -> dict:
+    """
+    get overview of stock fundamental including CIK,Exchange,Currency,Country,Sector,Industry,Address,OfficialSite,FiscalYearEnd,LatestQuarter,MarketCapitalization,EBITDA,PERatio,PEGRatio,BookValue,DividendPerShare,DividendYield,EPS,RevenuePerShareTTM,ProfitMargin,OperatingMarginTTM,ReturnOnAssetsTTM,ReturnOnEquityTTM,RevenueTTM,GrossProfitTTM,DilutedEPSTTM,QuarterlyEarningsGrowthYOY,QuarterlyRevenueGrowthYOY,AnalystTargetPrice,AnalystRatingStrongBuy,AnalystRatingBuy,AnalystRatingHold,AnalystRatingSell,AnalystRatingStrongSell,TrailingPE,ForwardPE,PriceToSalesRatioTTM,PriceToBookRatio,EVToRevenue,EVToEBITDA,Beta,52WeekHigh,52WeekLow,50DayMovingAverage,200DayMovingAverage,SharesOutstanding,DividendDate,ExDividendDate
 
+    Args:
+        symbol: The stock ticker symbol to query (e.g., 'AAPL').
+
+    Returns:
+        A dictionary containing the latest stock overiview info data or an error message.
+    """
+    # Ensure the API key is set in the environment variables
+    api_key = os.getenv("ALPHAVANTAGE_API_KEY")
+    if not api_key:
+        return {"error": "Alpha Vantage API key is not set in the environment variables."}
+
+    # Define the base URL and parameters
+    url = "https://www.alphavantage.co/query"
+    params = {
+        "function": "OVERVIEW",
+        "symbol": symbol,
+    }
+
+    try:
+        # Make the API request
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Failed to fetch stock quote: {str(e)}"}
 
 tools = [
     list_database_tables,
@@ -879,7 +908,8 @@ tools = [
     get_sliding_window_analytics,
     get_stock_quote,
     repl_tool,
-    update_trading_chart
+    update_trading_chart,
+    get_stock_overview
 ]
 
 graph = create_react_agent(model, tools=tools, state_modifier=prompt)
