@@ -9,3 +9,4 @@ langsmith
 langchain-anthropic
 langchain-experimental
 gunicorn
+langgraph-checkpoint-postgres
