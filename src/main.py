@@ -1,8 +1,6 @@
-
 import json
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import JSONResponse
-from fastapi import HTTPException
 from src.agent_logic import graph  # Import the graph directly
 from dotenv import load_dotenv
 from typing import Dict, Any
@@ -34,7 +32,9 @@ def invoke_graph(input_data: Dict[str, Any]):
     REST API to invoke the graph synchronously.
     """
     try:
-        response = graph.invoke(input=input_data)
+        thread_id = input_data.get("thread_id", "default")  # Use provided thread_id or default
+        config = {"configurable": {"thread_id": thread_id}}
+        response = graph.invoke(input=input_data, config=config)
         return JSONResponse(content=make_serializable(response))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -47,7 +47,9 @@ async def stream_graph(input_data: Dict[str, Any]):
     """
     response_list = []
     try:
-        for event in graph.stream(input=input_data, stream_mode="values"):
+        thread_id = input_data.get("thread_id", "default")
+        config = {"configurable": {"thread_id": thread_id}}
+        for event in graph.stream(input=input_data, config=config, stream_mode="values"):
             response_list.append(make_serializable(event))
         return JSONResponse(content={"stream_response": response_list})
     except Exception as e:
@@ -67,16 +69,18 @@ async def websocket_endpoint(websocket: WebSocket):
 
             # Expecting data to be {"mode": "invoke" or "stream", "messages": [{"role": "user", "content": "..."}]}
             mode = data.get("mode", "invoke")
+            thread_id = data.get("thread_id", "default")
             input_data = {"messages": data["messages"]}
+            config = {"configurable": {"thread_id": thread_id}}
 
             if mode == "invoke":
                 # Synchronous invoke mode
-                response = graph.invoke(input=input_data)
+                response = graph.invoke(input=input_data, config=config)
                 await websocket.send_json({"response": make_serializable(response)})
             elif mode == "stream":
                 # Streaming mode
                 try:
-                    async for event in graph.astream(input=input_data, stream_mode="values"):
+                    async for event in graph.astream(input=input_data, config=config, stream_mode="values"):
                         await websocket.send_json({"stream_response": make_serializable(event)})
                 except Exception as e:
                     await websocket.send_json({"error": str(e)})

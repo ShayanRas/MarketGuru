@@ -17,15 +17,18 @@ from urllib.parse import urlencode
 from sqlalchemy import Column, String, BigInteger, Date
 from sqlalchemy.orm import declarative_base
 from langchain_experimental.utilities import PythonREPL
-DATABASE_URL = os.getenv("DATABASE_URL")
 from dotenv import load_dotenv
 load_dotenv()
+from langgraph.checkpoint.memory import MemorySaver
 
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Create the engine and connect
 engine = create_engine(DATABASE_URL)
 metadata = MetaData()
 metadata.reflect(bind=engine)
+
+memory = MemorySaver()
 
 
 # Create an Inspector instance
@@ -917,7 +920,7 @@ tools = [
     get_stock_overview
 ]
 
-graph = create_react_agent(model, tools=tools, state_modifier=prompt)
+graph = create_react_agent(model, tools=tools, state_modifier=prompt, checkpointer=memory)
 
 def print_stream(stream):
     for s in stream:
