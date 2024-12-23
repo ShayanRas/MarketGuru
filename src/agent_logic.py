@@ -20,6 +20,9 @@ from langchain_experimental.utilities import PythonREPL
 from dotenv import load_dotenv
 load_dotenv()
 from langgraph.checkpoint.memory import MemorySaver
+from tradingview_screener.query import Query
+from tradingview_screener.column import Column
+
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -900,6 +903,62 @@ def get_stock_overview(symbol: str) -> dict:
     except requests.exceptions.RequestException as e:
         return {"error": f"Failed to fetch stock overview: {str(e)}"}
 
+@tool
+def run_tradingview_scan(
+    select_fields: list,
+    filter_conditions: list,
+    order_by_field: str = "volume",
+    ascending: bool = False,
+    limit: int = 50
+) -> dict:
+    """
+    Dynamically run a TradingView Screener query based on user-defined filtering conditions.
+
+    Args:
+        select_fields (list): Columns to retrieve (e.g., ['name', 'close', 'volume']).
+        filter_conditions (list): List of filter dictionaries (e.g., [{"column": "exchange", "operation": "in_range", "value": ["NASDAQ"]}]).
+        order_by_field (str): Column to order results by (default: 'volume').
+        ascending (bool): Order direction (default: False for descending).
+        limit (int): Maximum number of results to return.
+
+    Returns:
+        dict: Query results in JSON format.
+    """
+    try:
+        # Build the query
+        query = Query().select(*select_fields).limit(limit).set_markets("america")
+
+        # Apply filters dynamically
+        for condition in filter_conditions:
+            col_name = condition.get("column")
+            operation = condition.get("operation")
+            value = condition.get("value")
+
+            col = Column(col_name)
+            if operation == "in_range":
+                query = query.where(col.isin(value))
+            elif operation == "greater":
+                query = query.where(col > value)
+            elif operation == "less":
+                query = query.where(col < value)
+            elif operation == "equal":
+                query = query.where(col == value)
+
+        # Apply sorting
+        query = query.order_by(order_by_field, ascending=ascending)
+
+        # Execute the query
+        total_count, results = query.get_scanner_data()
+
+        # Return results
+        return {
+            "total_count": total_count,
+            "results": results.to_dict(orient="records")
+        }
+    except Exception as e:
+        return {"error": f"Failed to run screener query: {str(e)}"}
+
+
 tools = [
     list_database_tables,
     get_table_details,
@@ -917,7 +976,8 @@ tools = [
     get_stock_quote,
     repl_tool,
     update_trading_chart,
-    get_stock_overview
+    get_stock_overview,
+    run_tradingview_scan,
 ]
 
 graph = create_react_agent(model, tools=tools, state_modifier=prompt, checkpointer=memory)
