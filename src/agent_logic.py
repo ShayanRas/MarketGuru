@@ -21,8 +21,6 @@ from dotenv import load_dotenv
 load_dotenv()
 from langgraph.checkpoint.memory import MemorySaver
 from tradingview_screener.query import Query
-from tradingview_screener import Column
-
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -902,6 +900,8 @@ def get_stock_overview(symbol: str) -> dict:
 
     except requests.exceptions.RequestException as e:
         return {"error": f"Failed to fetch stock overview: {str(e)}"}
+
+from tradingview_screener import Column
 
 @tool
 def run_tradingview_scan(
