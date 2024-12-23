@@ -41,7 +41,43 @@ session = Session()
 #model = ChatAnthropic(model="claude-3-5-sonnet-20241022", temperature=0.1)
 model = ChatOpenAI(model="gpt-4o", temperature=0.1)
 
-prompt = "You are a full CFA certified Trading and Investing focused AI assistant and chatbot. You have access to several tools that help you do this."
+prompt = """You are a full CFA certified Trading and Investing focused AI assistant and chatbot. You have access to several tools that help you do this.
+Required guidance for specific tools, if guidance not present you can proceed with the tool directly.
+
+Tool: run_tradingview_scan. Purpose: Queries TradingView's Screener API to filter and return stock data based on user-defined conditions.  
+
+Usage Guide:  
+- **Field Mapping**: Translate user queries into `select_fields` (e.g., 'name', 'close', 'Perf.Y', 'volume', 'market_cap_basic').  
+  Examples:  
+  - "Get top-performing stocks by market cap" → `select_fields = ["name", "market_cap_basic", "Perf.Y"]`  
+  - "Show price and P/E ratio" → `["name", "close", "price_earnings_ttm"]`  
+
+- **Filtering**: Map conditions to `filter_conditions` for stock screening.  
+  Examples:  
+  - "Stocks above $50" → `{"column": "close", "operation": "greater", "value": 50}`  
+  - "NASDAQ stocks" → `{"column": "exchange", "operation": "in_range", "value": ["NASDAQ"]}`  
+  - "Exclude preferred stocks" → `{"column": "typespecs", "operation": "has_none_of", "value": "preferred"}`  
+
+- **Sorting**: Use `order_by_field` to rank results.  
+  - "Top gainers" → `order_by_field = "Perf.Y", ascending = False`  
+
+- **Limits**: Return up to `limit` results, default is 50.  
+
+Example Full Call:  
+```python
+run_tradingview_scan(
+    select_fields=["name", "close", "Perf.Y", "volume"],
+    filter_conditions=[
+        {"column": "exchange", "operation": "in_range", "value": ["NASDAQ", "NYSE"]},
+        {"column": "close", "operation": "greater", "value": 50},
+        {"column": "market_cap_basic", "operation": "greater", "value": 5000000000}
+    ],
+    order_by_field="Perf.Y",
+    ascending=False,
+    limit=100
+)
+
+"""
 
 ##Base Classes and Enums
 
@@ -920,17 +956,20 @@ def run_tradingview_scan(
     limit: int = 50
 ) -> dict:
     """
-    Dynamically run a TradingView Screener query based on user-defined filtering conditions. tv_screener_stocks table holds the available fields for the query, and is added to ORM with fuzzy search ability.
+Dynamically queries TradingView's Screener API to retrieve market data based on user-defined filters.
 
     Args:
-        select_fields (list): Columns to retrieve (e.g., ['name', 'close', 'volume']).
-        filter_conditions (list): List of filter dictionaries (e.g., [{"column": "exchange", "operation": "in_range", "value": ["NASDAQ"]}]).
-        order_by_field (str): Column to order results by (default: 'volume').
-        ascending (bool): Order direction (default: False for descending).
-        limit (int): Maximum number of results to return.
+        select_fields (list): Fields to fetch (e.g., ['name', 'close', 'Perf.Y', 'volume']). 
+                            Map user requests for price, volume, or performance to relevant fields.
+        filter_conditions (list): Conditions for filtering results. Example:
+                                - Price above $50 → {"column": "close", "operation": "greater", "value": 50}
+                                - NASDAQ stocks → {"column": "exchange", "operation": "in_range", "value": ["NASDAQ"]}
+        order_by_field (str): Field to sort by (e.g., 'Perf.Y' for yearly performance).
+        ascending (bool): Set False for descending order (e.g., "top performers").
+        limit (int): Max results to return.
 
     Returns:
-        dict: Query results in JSON format.
+        dict: JSON results of stocks that match the conditions. Optimized for dynamic screener queries.
     """
     try:
         # Build the query
