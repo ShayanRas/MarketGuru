@@ -21,7 +21,7 @@ from dotenv import load_dotenv
 load_dotenv()
 from langgraph.checkpoint.memory import MemorySaver
 from tradingview_screener.query import Query
-from tradingview_screener.column import Column
+from tradingview_screener import Column
 
 
 DATABASE_URL = os.getenv("DATABASE_URL")
