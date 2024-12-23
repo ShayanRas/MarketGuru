@@ -201,6 +201,14 @@ class DataType(str, Enum):
     JSON = "json"
     CSV = "csv"
 
+class TvScreenerStocks(Base):
+    __tablename__ = "tv_screener_stocks"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    field_name = Column(String, unique=True, nullable=False)
+    description = Column(String)
+    data_type = Column(String)
+    has_timeframe = Column(String, nullable=False)
 
 
 def query_wolfram_alpha(input_query: str, maxchars: int = 6800) -> dict:
@@ -912,7 +920,7 @@ def run_tradingview_scan(
     limit: int = 50
 ) -> dict:
     """
-    Dynamically run a TradingView Screener query based on user-defined filtering conditions.
+    Dynamically run a TradingView Screener query based on user-defined filtering conditions. tv_screener_stocks table holds the available fields for the query, and is added to ORM with fuzzy search ability.
 
     Args:
         select_fields (list): Columns to retrieve (e.g., ['name', 'close', 'volume']).
