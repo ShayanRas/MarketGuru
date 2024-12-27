@@ -909,7 +909,7 @@ Dynamically queries TradingView's Screener API to retrieve market data based on 
         order_by_field (str): Field to sort by (e.g., 'Perf.Y' for yearly performance).
         ascending (bool): Set False for descending order (e.g., "top performers").
         limit (int): Max results to return.
-
+        don't filter for Symbol, it does not exist in the API. Intead use name anytime you want to use symbol.
     Returns:
         dict: JSON results of stocks that match the conditions. Optimized for dynamic screener queries.
     """

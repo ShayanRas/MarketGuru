@@ -82,6 +82,7 @@ Examples: /n
 5. "Energy stocks with the highest dividend yield" → {"select_fields": ["name", "close", "sector", "dividends_yield_current"], "filter_conditions": [{"column": "sector", "operation": "equal", "value": "Energy Minerals"}], "order_by_field": "dividends_yield_current", "ascending": False, "limit": 25} /n
 Handling New Queries: When users request data or filters not explicitly covered in the examples, infer the closest matching fields by referencing tv_screener_stocks. If the user requests "best-performing" stocks, map this to performance-related fields like Perf.1M or change|60. If no direct field is found, prioritize relevant financial metrics like EPS, market cap, or sector performance. Always include name and close in results, even if not explicitly mentioned. Use broad filtering for exploratory queries and refine as the user provides more specific criteria. /n
 to select for a specific stock, either use ticker (ticket format example: NASDAQ:SMX, OTC:CNSWF	etc) or name (example: SMX, CNSWF), symbol DOES NOT WORK. /n
+###end guide for tradingview_scan tool /n
 
 """
 
