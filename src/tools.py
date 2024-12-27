@@ -890,57 +890,37 @@ def get_stock_overview(symbol: str) -> dict:
 from tradingview_screener import Column
 
 @tool
-def run_tradingview_scan(
-    select_fields: list,
-    filter_conditions: list,
-    order_by_field: str = "volume",
-    ascending: bool = False,
-    limit: int = 50
-) -> dict:
+def execute_tradingview_query(query_str: str) -> dict:
     """
-Dynamically queries TradingView's Screener API to retrieve market data.
+    Execute a raw TradingView Screener query string directly.
+
     Args:
-        select_fields (list): Fields to fetch (e.g., ['name', 'close', 'Perf.Y', 'volume']). 
-                            Map user requests for price, volume, or performance to relevant fields.
-        filter_conditions (list): Conditions for filtering results. Example:
-                                - Price above $50 → {"column": "close", "operation": "greater", "value": 50}
-        order_by_field (str): Field to sort by (e.g., 'Perf.Y' for yearly performance).
-        ascending (bool): Set False for descending order (e.g., "top performers").
-        limit (int): Max results to return.
-        don't filter for Symbol, it does not exist in the API. Intead use 'name' anytime you want to use symbol.
+        query_str (str): Raw TradingView Query string written in Python that defines screening logic.
+
+    Example Query:
+        "Query().select('name', 'close', 'volume')
+        .where(
+            Column('market_cap_basic').between(1_000_000, 50_000_000),
+            Column('volume') > 1_000_000
+        )
+        .order_by('volume', ascending=False)
+        .limit(25)
+        .get_scanner_data()"
+
     Returns:
-        dict: JSON results of stocks that match the conditions. Optimized for dynamic screener queries.
+        dict: JSON results of the stocks that match the conditions.
     """
     try:
-        # Build the query
-        query = Query().select(*select_fields).limit(limit).set_markets("america")
-
-        # Apply filters dynamically
-        for condition in filter_conditions:
-            col_name = condition.get("column")
-            operation = condition.get("operation")
-            value = condition.get("value")
-
-            col = Column(col_name)
-            if operation == "in_range":
-                query = query.where(col.isin(value))
-            elif operation == "greater":
-                query = query.where(col > value)
-            elif operation == "less":
-                query = query.where(col < value)
-            elif operation == "equal":
-                query = query.where(col == value)
-
-        # Apply sorting
-        query = query.order_by(order_by_field, ascending=ascending)
-
-        # Execute the query
+        # Safely evaluate the string to execute the query
+        local_context = {"Query": Query, "Column": Column}  # Pass Column directly
+        query = eval(query_str, {}, local_context)
+        
+        # Ensure the query returns results
         total_count, results = query.get_scanner_data()
 
-        # Return results
         return {
             "total_count": total_count,
             "results": results.to_dict(orient="records")
         }
     except Exception as e:
-        return {"error": f"Failed to run screener query: {str(e)}"}
+        return {"error": f"Failed to execute query: {str(e)}"}
