@@ -898,14 +898,12 @@ def run_tradingview_scan(
     limit: int = 50
 ) -> dict:
     """
-Dynamically queries TradingView's Screener API to retrieve market data based on user-defined filters.
-
+Dynamically queries TradingView's Screener API to retrieve market data.
     Args:
         select_fields (list): Fields to fetch (e.g., ['name', 'close', 'Perf.Y', 'volume']). 
                             Map user requests for price, volume, or performance to relevant fields.
         filter_conditions (list): Conditions for filtering results. Example:
                                 - Price above $50 → {"column": "close", "operation": "greater", "value": 50}
-                                - NASDAQ stocks → {"column": "exchange", "operation": "in_range", "value": ["NASDAQ"]}
         order_by_field (str): Field to sort by (e.g., 'Perf.Y' for yearly performance).
         ascending (bool): Set False for descending order (e.g., "top performers").
         limit (int): Max results to return.
