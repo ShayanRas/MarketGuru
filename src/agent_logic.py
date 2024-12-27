@@ -39,7 +39,8 @@ from src.tools import (
     repl_tool,
     update_trading_chart,
     get_stock_overview,
-    execute_tradingview_query
+    execute_tradingview_query,
+    get_time_series_daily_adjusted
 )
 
 DATABASE_URL = os.getenv("DATABASE_URL")
