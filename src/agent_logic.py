@@ -67,35 +67,20 @@ Prioritize the use of the tradingview_scan tool to query info about stocks. Fall
 perform calculations via wolfram alpha if needed, if not posssible fallback to repl /n
 Ensure you refuse to do anything that's not trading or investing related. /n
 Furthre instructions about tool usage for more complicated toos: /n
-Tool: run_tradingview_scan. Purpose: Queries TradingView's Screener API to filter and return stock data based on user-defined conditions. /n
--**Field Mapping**: Translate user queries into `select_fields` (e.g., 'name', 'close', 'Perf.Y', 'volume', 'market_cap_basic').  
-  Examples:  
-  - "Get top-performing stocks by market cap" → `select_fields = ["name", "market_cap_basic", "Perf.Y"]`  
-  - "Show price and P/E ratio" → `["name", "close", "price_earnings_ttm"]`  /n
-- **Filtering**: Map conditions to `filter_conditions` for stock screening.  /n
-  Examples:  
-  - "Stocks above $50" → `{"column": "close", "operation": "greater", "value": 50}`  
-  - "NASDAQ stocks" → `{"column": "exchange", "operation": "in_range", "value": ["NASDAQ"]}`  
-  - "Exclude preferred stocks" → `{"column": "typespecs", "operation": "has_none_of", "value": "preferred"}`  /n
-- **Sorting**: Use `order_by_field` to rank results.  /n
-  - "Top gainers" → `order_by_field = "Perf.Y", ascending = False`  /n
-- **Limits**: Return up to `limit` results, default is 50.  /n
-Example Full Call:  
-```python
-run_tradingview_scan(
-    select_fields=["name", "close", "Perf.Y", "volume"],
-    filter_conditions=[
-        {"column": "exchange", "operation": "in_range", "value": ["NASDAQ", "NYSE"]},
-        {"column": "close", "operation": "greater", "value": 50},
-        {"column": "market_cap_basic", "operation": "greater", "value": 5000000000}
-    ],
-    order_by_field="Perf.Y",
-    ascending=False,
-    limit=100
-)/n
-To get what fields represent the data you need for the screener, query table: tv_screener_stocks. Fields that have timeframe breakdown get a |# added, for example, Change percent for 60 minutes is change|60 /n
-common fields used: Symbol Type:type,  earnings_per_share_basic_ttm, Change %:change (has timefremes), market_cap_basic, price_earnings_ttm, sector, Technical Rating: Recommend.All (has timeframe), volume (has timeframe), Volume*Price: Value.Traded (has timeframe), 	1-Month High: High.1M (extended format to Low, Perf (performance) and 3M etc.), All Time High: High.All (extendible to Low and Perf), 	Basic EPS (FY): basic_eps_net_income, cash_n_equivalents_fy, ebitda_yoy_growth_fy, earnings_per_share_diluted_yoy_growth_ttm, gross_margin, gross_profit_yoy_growth_ttm, Moving Averages Rating: Recommend.MA (has timeframes), Net Income (Quarterly YoY Growth): net_income_yoy_growth_fq, and so on. /n
-you always want to select fields name, and close minimum for all queries. /n
+# Tool Guide: TradingView Screener (run_tradingview_scan) /n
+Purpose: Queries TradingView's Screener API to dynamically filter and return stock data based on user-defined conditions. /n
+Stock Identifier: Use symbol (not name) to filter specific companies. Example: "Apple Inc." → {"column": "symbol", "operation": "equal", "value": "AAPL"} /n
+Essential Fields (Always Include): name (company name), close (latest closing price). /n
+Common Fields: High.1M (1-month high), High.All (all-time high), earnings_per_share_diluted_ttm (EPS ttm), earnings_per_share_diluted_yoy_growth_ttm (YoY EPS growth), market_cap_basic (market cap), sector (industry), volume (timeframe-based), price_earnings_ttm (P/E ratio ttm), dividends_yield_current (dividend yield), Recommend.All (technical rating), Value.Traded (Volume * Price). /n
+Timeframe Fields: Use |# for timeframe variations. Example: change|60 (60-minute change), High.3M (3-month high), Perf.1M (1-month performance), Recommend.MA|1D (Moving Average daily). /n
+Sectors for Filtering: Finance, Commercial Services, Process Industries, Communications, Consumer Durables, Consumer Non-Durables, Transportation, Health Technology, Retail Trade, Consumer Services, Technology Services, Electronic Technology, Miscellaneous, Distribution Services, Producer Manufacturing, Non-Energy Minerals, Health Services, Energy Minerals, Industrial Services, Utilities. /n
+Examples: /n
+1. "Top 10 companies by market cap" → {"select_fields": ["name", "close", "market_cap_basic"], "filter_conditions": [], "order_by_field": "market_cap_basic", "ascending": False, "limit": 10} /n
+2. "Tech sector stocks above $50" → {"select_fields": ["name", "close", "sector"], "filter_conditions": [{"column": "sector", "operation": "equal", "value": "Technology Services"}, {"column": "close", "operation": "greater", "value": 50}], "order_by_field": "name", "ascending": True, "limit": 50} /n
+3. "Apple's 1-month high, all-time high, and EPS growth" → {"select_fields": ["name", "High.1M", "High.All", "earnings_per_share_diluted_yoy_growth_ttm"], "filter_conditions": [{"column": "symbol", "operation": "equal", "value": "AAPL"}], "order_by_field": "name", "ascending": True, "limit": 1} /n
+4. "Large-cap financial stocks over 10 billion" → {"select_fields": ["name", "close", "sector", "market_cap_basic"], "filter_conditions": [{"column": "sector", "operation": "equal", "value": "Finance"}, {"column": "market_cap_basic", "operation": "greater", "value": 10000000000}], "order_by_field": "market_cap_basic", "ascending": False, "limit": 20} /n
+5. "Energy stocks with the highest dividend yield" → {"select_fields": ["name", "close", "sector", "dividends_yield_current"], "filter_conditions": [{"column": "sector", "operation": "equal", "value": "Energy Minerals"}], "order_by_field": "dividends_yield_current", "ascending": False, "limit": 25} /n
+Tips: Use symbol for company filtering (not name), always select name and close by default, combine filters for complex queries (sector + price), and apply logical sorting by market_cap_basic or earnings_per_share_diluted_ttm. Interpret timeframes using |# format (e.g., High.1M, change|60). Query tv_screener_stocks to explore available fields dynamically. /n
 """
 
 ##Base Classes and Enums
