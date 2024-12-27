@@ -924,3 +924,40 @@ def execute_tradingview_query(query_str: str) -> dict:
         }
     except Exception as e:
         return {"error": f"Failed to execute query: {str(e)}"}
+
+
+
+from langchain_core.tools import tool
+import os
+import requests
+
+@tool
+def get_time_series_daily_adjusted(symbol: str) -> dict:
+    """
+    Fetch daily adjusted OHLCV (candlestick) data for a given stock symbol.
+
+    Args:
+        symbol: The stock ticker symbol to query (e.g., 'IBM').
+
+    Returns:
+        A dictionary containing daily OHLCV and adjusted data or an error message.
+    """
+    api_key = os.getenv("ALPHAVANTAGE_API_KEY")
+    if not api_key:
+        return {"error": "Alpha Vantage API key is not set in the environment variables."}
+
+    url = "https://www.alphavantage.co/query"
+    params = {
+        "function": "TIME_SERIES_DAILY_ADJUSTED",
+        "symbol": symbol,
+        "datatype": "json",  # Hardcoded to json
+        "outputsize": "compact",  # Hardcoded to compact
+        "apikey": api_key
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Failed to fetch time series data: {str(e)}"}

@@ -144,7 +144,8 @@ tools = [
     repl_tool,
     update_trading_chart,
     get_stock_overview,
-   execute_tradingview_query,
+    execute_tradingview_query,
+    get_time_series_daily_adjusted
 ]
 
 graph = create_react_agent(model, tools=tools, state_modifier=prompt, checkpointer=memory)
