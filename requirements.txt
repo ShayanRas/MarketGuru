@@ -11,3 +11,4 @@ langchain-experimental
 gunicorn
 langgraph-checkpoint-postgres
 tradingview_screener
+matplotlib
