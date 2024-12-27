@@ -84,6 +84,7 @@ Handling New Queries: When users request data or filters not explicitly covered 
 to select for a specific stock, either use ticker (ticket format example: NASDAQ:SMX, OTC:CNSWF	etc) or name (example: SMX, CNSWF), symbol DOES NOT WORK. /n
 ###end guide for tradingview_scan tool /n
 
+When the user asks about a stock, after you get all the info they need, call the update_trading_chart tool to update the chart for the stock name(symbol). /n
 """
 
 ##Base Classes and Enums
