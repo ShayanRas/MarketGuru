@@ -39,7 +39,7 @@ from src.tools import (
     repl_tool,
     update_trading_chart,
     get_stock_overview,
-    run_tradingview_scan,
+    execute_tradingview_query
 )
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -144,7 +144,7 @@ tools = [
     repl_tool,
     update_trading_chart,
     get_stock_overview,
-    run_tradingview_scan,
+   execute_tradingview_query,
 ]
 
 graph = create_react_agent(model, tools=tools, state_modifier=prompt, checkpointer=memory)
