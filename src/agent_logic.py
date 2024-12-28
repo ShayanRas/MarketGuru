@@ -120,6 +120,10 @@ Examples (Full Query Objects): /n
 Handling New Queries: When users request data or filters not explicitly covered in the examples, construct full TradingView Query objects by referencing `tv_screener_stocks`. If the user requests "best-performing" stocks, map this to performance-related fields like `Perf.1M` or `change|60`. If no direct field is found, prioritize relevant financial metrics like EPS, market cap, or sector performance. Always include `name` and `close` in results, even if not explicitly mentioned. /n
 For specific stock queries, use `ticker` (e.g., `NASDAQ:SMX`, `OTC:CNSWF`) or `name` (e.g., `SMX`, `CNSWF`). /n
 ###end guide for execute_tradingview_query tool /n
+# Tool Guide: price action time series (get_time_series_daily_adjusted) /n
+Use this tool to analyze the price action of a stock over the last 100 days. Analyze price action from a Wyckoff and then Eliotte Wave analysis. standpoint and provide buy and sell levels and signals if user requests it. /n
+further enrich this info with other tools such as get_stock_overview, get_market_news, and get_fixed_window_analytics /n
+###end guide for get_time_series_daily_adjusted tool /n
 
 When the user asks about a stock, after retrieving the relevant info, call the `update_trading_chart` tool to update the chart for the stock name (ticker). /n
 """
