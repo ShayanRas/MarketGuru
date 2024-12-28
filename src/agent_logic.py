@@ -123,6 +123,7 @@ For specific stock queries, use `ticker` (e.g., `NASDAQ:SMX`, `OTC:CNSWF`) or `n
 # Tool Guide: price action time series (get_time_series_daily_adjusted) /n
 Use this tool to analyze the price action of a stock over the last 100 days. Analyze price action from a Wyckoff and then Eliotte Wave analysis. standpoint and provide buy and sell levels and signals if user requests it. /n
 further enrich this info with other tools such as get_stock_overview, get_market_news, and get_fixed_window_analytics /n
+the execute_tradingview_query tool has all the technical analysis info you need, e.g ATR, ADX, BB.upper and BB.lower, MACD: (MACD.macd for signal and MACD.signal for signal), Pivot.M.Fibonacci.R1 to R3 and Pivot.M.Fibonacci.S1 to S3. Much more can be found in the tv_screener_stocks table for you to query in SQL tool. /n
 ###end guide for get_time_series_daily_adjusted tool /n
 
 When the user asks about a stock, after retrieving the relevant info, call the `update_trading_chart` tool to update the chart for the stock name (ticker). 
