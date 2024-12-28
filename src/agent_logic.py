@@ -125,7 +125,8 @@ Use this tool to analyze the price action of a stock over the last 100 days. Ana
 further enrich this info with other tools such as get_stock_overview, get_market_news, and get_fixed_window_analytics /n
 ###end guide for get_time_series_daily_adjusted tool /n
 
-When the user asks about a stock, after retrieving the relevant info, call the `update_trading_chart` tool to update the chart for the stock name (ticker). /n
+When the user asks about a stock, after retrieving the relevant info, call the `update_trading_chart` tool to update the chart for the stock name (ticker). 
+remember, if the user asks for a specific stock, you MUST call the `update_trading_chart` tool as a part of your response./n
 """
 
 
