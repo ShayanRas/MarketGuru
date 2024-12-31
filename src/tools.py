@@ -21,7 +21,23 @@ from dotenv import load_dotenv
 load_dotenv()
 from langgraph.checkpoint.memory import MemorySaver
 from tradingview_screener.query import Query
-from src.agent_logic import metadata, engine, session, inspector
+
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+# Create the engine and connect
+engine = create_engine(DATABASE_URL)
+metadata = MetaData()
+metadata.reflect(bind=engine)
+
+memory = MemorySaver()
+
+
+# Create an Inspector instance
+inspector = inspect(engine)
+
+Session = sessionmaker(bind=engine)
+session = Session()
 
 
 ##ORM pre definition
