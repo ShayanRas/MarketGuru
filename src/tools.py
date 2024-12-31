@@ -21,7 +21,7 @@ from dotenv import load_dotenv
 load_dotenv()
 from langgraph.checkpoint.memory import MemorySaver
 from tradingview_screener.query import Query
-
+from src.agent_logic import metadata, engine, session, inspector
 
 
 ##ORM pre definition
@@ -502,8 +502,6 @@ def get_orm_model_details(table_name: str) -> dict:
         raise RuntimeError(f"Failed to get model details for '{table_name}': {e}")
 
 
-from sqlalchemy.orm import Session
-from langchain_core.tools import tool
 
 
 def execute_orm_query(model_name: str, filters: dict = None, limit: int = None) -> dict:
