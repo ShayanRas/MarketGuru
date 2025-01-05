@@ -123,7 +123,7 @@ class BalanceSheet(Base):
     commonstocksharesoutstanding = Column(BigInteger)
 
 
-class CashFlows(Base):
+class CashFlow(Base):
     __tablename__ = "cash_flow"
 
     symbol = Column(String(10), primary_key=True)
