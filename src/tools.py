@@ -124,7 +124,7 @@ class BalanceSheet(Base):
 
 
 class CashFlows(Base):
-    __tablename__ = "cash_flows"
+    __tablename__ = "cash_flow"
 
     symbol = Column(String(10), primary_key=True)
     fiscaldateending = Column(Date, primary_key=True)
