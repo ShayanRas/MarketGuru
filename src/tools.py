@@ -43,6 +43,8 @@ session = Session()
 ##ORM pre definition
 
 Base = declarative_base()
+Base.metadata.bind = engine
+Base.metadata.create_all(engine)
 
 class EconBaseModel(BaseModel):
     interval: Optional[str] = "monthly"

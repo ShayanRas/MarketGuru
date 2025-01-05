@@ -126,7 +126,7 @@ further enrich this info with other tools such as get_stock_overview, get_market
 the execute_tradingview_query tool has all the technical analysis info you need, e.g ATR, ADX, BB.upper and BB.lower, MACD: (MACD.macd for signal and MACD.signal for signal), Pivot.M.Fibonacci.R1 to R3 and Pivot.M.Fibonacci.S1 to S3. Much more can be found in the tv_screener_stocks table for you to query in SQL tool. /n
 ###end guide for get_time_series_daily_adjusted tool /n
 # Database Schema:
-1. Income Statement
+1. income_statement
 - symbol: VARCHAR(10), not null
 - fiscaldateending: DATE, not null
 - reportedcurrency: VARCHAR(10)
@@ -137,7 +137,7 @@ the execute_tradingview_query tool has all the technical analysis info you need,
   depreciationandamortization, incomebeforetax, incometaxexpense, 
   interestanddebtexpense, netincomefromcontinuingoperations, 
   comprehensiveincomenetoftax, ebit, ebitda, netincome: BIGINT
-2. Balance Sheet
+2. balance_sheet
 - symbol: VARCHAR(10), not null
 - fiscaldateending: DATE, not null
 - reportedcurrency: VARCHAR(10)
@@ -154,7 +154,7 @@ the execute_tradingview_query tool has all the technical analysis info you need,
   othercurrentliabilities, othernoncurrentliabilities, totalshareholderequity, 
   treasurystock, retainedearnings, commonstock, 
   commonstocksharesoutstanding: BIGINT
-3. Cash Flow
+3. cash_flow
 - symbol: VARCHAR(10), not null
 - fiscaldateending: DATE, not null
 - reportedcurrency: VARCHAR(10)
@@ -176,6 +176,8 @@ the execute_tradingview_query tool has all the technical analysis info you need,
 - field_name: TEXT, not null
 - description, data_type: TEXT
 - has_timeframe: BOOLEAN, not null
+
+If ORM tools fail or you experience an error, fallback to execute_raw_sql_query and try to circumvent the error.
 When the user asks about a stock, after retrieving the relevant info, call the `update_trading_chart` tool to update the chart for the stock name (ticker). 
 remember, if the user asks for a specific stock, you MUST call the `update_trading_chart` tool as a part of your response./n
 """
