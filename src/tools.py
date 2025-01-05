@@ -522,12 +522,12 @@ def get_orm_model_details(table_name: str) -> dict:
 
 
 
-def execute_orm_query(model_name: str, filters: dict = None, limit: int = None) -> dict:
+def execute_orm_query(table_name: str, filters: dict = None, limit: int = None) -> dict:
     """
-    Execute an ORM-based query on a specified model.
+    Execute an ORM-based query on a specified table.
 
     Args:
-        model_name: The name of the ORM model (e.g., "IncomeStatement").
+        table_name: Name of the table to fetch data from (e.g., "cash_flow", "income_statement").
         filters: A dictionary of filters to apply (e.g., {"symbol": "IBM"}).
         limit: The maximum number of rows to return (optional).
 
@@ -536,15 +536,15 @@ def execute_orm_query(model_name: str, filters: dict = None, limit: int = None) 
     """
     global session, Base
 
-    if not model_name:
-        raise ValueError("Model name must be provided.")
+    if not table_name:
+        raise ValueError("Table name must be provided.")
 
     try:
         # Dynamically retrieve the ORM model class using Base.registry.mappers
         orm_model = next(
             mapper.class_
             for mapper in Base.registry.mappers
-            if mapper.class_.__name__ == model_name
+            if mapper.class_.__tablename__ == table_name
         )
 
         # Start building the query
@@ -568,15 +568,15 @@ def execute_orm_query(model_name: str, filters: dict = None, limit: int = None) 
         ]
 
         return {
-            "model_name": model_name,
+            "table_name": table_name,
             "filters": filters,
             "limit": limit,
             "results": formatted_results,
         }
     except StopIteration:
-        raise ValueError(f"Model '{model_name}' not found in the ORM registry.")
+        raise ValueError(f"Table '{table_name}' not found in the ORM.")
     except Exception as e:
-        raise RuntimeError(f"Failed to execute ORM query on '{model_name}': {e}")
+        raise RuntimeError(f"Failed to execute ORM query on '{table_name}': {e}")
 
 import os
 import requests
